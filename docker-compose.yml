@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+  mysql:
+    image: mysql:latest  # Or a specific version
+    restart: always
+    ports:
+      - "3308:3306"  # Expose MySQL port
+    environment:
+      MYSQL_ROOT_PASSWORD: password  # Optional: set a strong Root password
+    volumes:
+      - mysql-data:/var/lib/mysql  # Persistent volume for database data
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping"]  # Health check for MySQL
+      interval: 5s  # Check every 10 seconds
+      timeout: 2s   # Wait up to 5 seconds for a response
+      retries: 5 # Retry 5 times before considering the container as unhealthy
+  web:
+    build: .  # Refer to your Dockerfile for building the Rails app image
+    ports:
+      - "3000:3000"  # Expose Rails app port
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b 0.0.0.0"
+    volumes:
+      - .:/rails  # Mount your project directory into the container
+      - bundle:/usr/local/bundle  # Persist bundle gems
+    environment:
+      - RAILS_ENV=development  # Set environment variable for Rails
+      # - RAILS_MASTER_KEY=ee8f56c91d937af34e9fdcea89580d25  # Set environment variable for Rails
+    depends_on:
+      mysql:  # Ensure the database is running before starting the Rails app
+        condition: service_healthy  # Ensure the database is healthy before starting the Rails app
+    tty: true
+    stdin_open: true
+
+volumes:
+  bundle:
+    driver: local  # Use a local volume
+  mysql-data:
+    driver: local  # Use an existing volume named mysql_data

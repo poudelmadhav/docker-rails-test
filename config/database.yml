@@ -14,7 +14,8 @@ default: &default
   encoding: utf8mb4
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   username: root
-  password:
+  password: password
+  host: mysql # service name of docker-compose.yml which is linked to mysql container
   socket: /var/run/mysqld/mysqld.sock
 
 development:
