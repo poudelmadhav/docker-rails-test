@@ -47,11 +47,10 @@ RUN apt-get update -qq && \
 COPY --from=build /usr/local/bundle /usr/local/bundle
 COPY --from=build /rails /rails
 
-# Create a user with the same name as the host user (if applicable) for security
-RUN useradd --create-home --shell /bin/bash madhav  \
-  && chown -R madhav:madhav db log storage tmp
-# Set the default user for the container (optional)
-USER madhav:madhav
+# Run and own only the runtime files as a non-root user for security
+RUN useradd rails --create-home --shell /bin/bash && \
+    chown -R rails:rails db log storage tmp
+USER rails:rails
 
 # Entrypoint prepares the database.
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
